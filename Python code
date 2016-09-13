@@ -1,0 +1,54 @@
+#Classifiying digits on the MNIST dataset with CNNs using the keras library
+
+
+import numpy as np
+from keras.datasets import mnist
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Convolution2D, MaxPooling2D
+from keras.utils import np_utils
+
+batch_size = 128
+nb_classes = 10
+nb_epoch = 12
+
+img_rows, img_cols = 28, 28
+nb_filters = 32
+pool_size = (2, 2)
+kernel_size = (3,3)
+
+(X_tr, y_tr), (X_te, y_te) = mnist.load_data()
+
+X_tr = X_tr.astype('float32')
+X_te = X_te.astype('float32')
+X_tr /= 255
+X_te /= 255
+print('X_train shape:', X_tr.shape)
+print(X_tr.shape[0], 'train samples')
+print(X_te.shape[0], 'test samples')
+
+Y_tr = np_utils.to_categorical(y_tr, nb_classes)
+Y_te = np_utils.to_categorical(y_te, nb_classes)
+
+model = Sequential()
+
+model.add(Convolution2D(nb_filters, kernel_size[0], kernel_size[1], border_mode='valid',input_shape=input_shape))
+model.add(Activation('relu'))
+model.add(Convolution2D(nb_filters, kernel_size[0], kernel_size[1]))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=pool_size))
+model.add(Dropout(0.25))
+
+model.add(Flatten())
+model.add(Dense(128))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(nb_classes))
+model.add(Activation('softmax'))
+
+model.compile(loss='categorical_crossentropy',optimizer='adadelta',metrics=['accuracy'])
+
+model.fit(X_tr, Y_tr, batch_size=batch_size, nb_epoch=nb_epoch,verbose=1, validation_data=(X_te, Y_te))
+score = model.evaluate(X_te, Y_te, verbose=0)
+print('Test score:', score[0])
+print('Test accuracy:', score[1])
